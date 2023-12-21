@@ -2,6 +2,7 @@ const getState = ({ getStore, getActions, setStore }) => {
 	return {
 		store: {
 			message: null,
+			registerError: null,
 			demo: [
 				{
 					title: "FIRST",
@@ -17,9 +18,31 @@ const getState = ({ getStore, getActions, setStore }) => {
 		},
 		actions: {
 			// Use getActions to call a function within a fuction
-			exampleFunction: () => {
-				getActions().changeColor(0, "green");
-			},
+			registerUser: async (userDetails) => {
+                try {
+                    const response = await fetch(`${process.env.BACKEND_URL}api/register`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(userDetails),
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        console.error("Registration error:", errorData);
+                        setStore({ registerError: errorData.message || 'Registration failed. Please try again.' });
+                        return; // Exit the function if there's an error
+                    }
+
+                    const data = await response.json();
+                    console.log("User registered successfully:", data);
+                    // Here you might want to update the store with user data, or navigate to a different page, etc.
+                } catch (error) {
+                    console.error("Error during registration:", error);
+                    setStore({ registerError: error.message || 'An error occurred during registration.' });
+                }
+            },
 
 			getMessage: async () => {
 				try{
